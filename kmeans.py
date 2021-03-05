@@ -39,7 +39,7 @@ class kmeans:
         self.centroids = None
         self.labels = None
 
-    def fit(self, X, max_iter=300):
+    def fit(self, X, max_iter=300, seed=None):
         """Fits the model to given data and returns cluster labels.
 
         Given data can be 1-D or 2-D numpy arrays, a pandas Series, a
@@ -49,19 +49,24 @@ class kmeans:
         Parameters:
             X: The data to fit the model to.
             max_iter: The max amount of iterations for centroid updating.
+            seed: Seed for random initialization of clusters.
 
         Returns:
             numpy ndarray with cluster labels for each point.
         """
-        # Start with random centroids
+        # Seed the random number generator if seed supplied
+        if seed is not None:
+            np.random.seed(seed)
+
+        # Convert training data to numpy array and find max values for RNG
         X = np.array(X)
         max_val = X.max()
-        iterations = 0
+
+        # Initialize centroids and prepare to count iterations
         centroids = np.array([max_val * np.random.random_sample(X.shape[1])
                               for i in range(self.k)])
         p_centroids = np.full(centroids.shape, -1)
-
-        print(centroids)
+        iterations = 0
 
         # Loop until centroids aren't updated between iterations or max iter met
         while not self.__should_end(p_centroids, centroids, iterations, max_iter):
