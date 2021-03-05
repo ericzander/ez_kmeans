@@ -25,7 +25,7 @@ class kmeans:
     Attributes:
         k: The number of clusters.
         centroids: numpy array of centroids.
-        labels: numpy array of labels indicating the each row's centroid.
+        labels: numpy array of fitted data cluster labels.
     """
 
     def __init__(self, k):

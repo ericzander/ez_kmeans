@@ -1,0 +1,6 @@
+The images in this folder are selections from the dataset uploaded by
+Olga Belitskaya on Kaggle.
+
+Here is the link:
+
+  https://www.kaggle.com/olgabelitskaya/flower-color-images
