@@ -1,0 +1,7 @@
+The data in music_genres.csv are available through Kaggle.
+
+They were uploaded by user Insiyah Hajoori, who credits MARSYAS.
+
+You can find the data at the link below:
+
+    https://www.kaggle.com/insiyeah/musicfeatures?select=data.csv

@@ -1,4 +1,4 @@
-"""This module contains a custom k-means clustering class.
+"""This module contains a simple custom k-means clustering class.
 
 When fit to a 1-D or 2-D array of data, calculates k centroids and returns
 cluster labels for each point. The model retains the centroids, and can
@@ -23,9 +23,9 @@ class kmeans:
     """k-means clustering model fitting and predicting.
 
     Attributes:
-            k: The number of clusters.
-            centroids: numpy array of centroids.
-            labels: numpy array of labels indicating the each row's centroid.
+        k: The number of clusters.
+        centroids: numpy array of centroids.
+        labels: numpy array of labels indicating the each row's centroid.
     """
 
     def __init__(self, k):
@@ -33,29 +33,35 @@ class kmeans:
         Initialize k-means clustering model.
 
         Parameters:
-                k: The number of clusters
+            k: The number of clusters
         """
         self.k = k
         self.centroids = None
         self.labels = None
 
     def fit(self, X, max_iter=300):
-        """
-        Fits the model to given data and returns cluster labels for given data.
+        """Fits the model to given data and returns cluster labels.
+
+        Given data can be 1-D or 2-D numpy arrays, a pandas Series, a
+        pandas DataFrame, or other similar format that can be converted
+        into a numpy array.
 
         Parameters:
-                X: The data to find centroids for.
-                max_iter: The max amount of iterations for centroid updating.
+            X: The data to fit the model to.
+            max_iter: The max amount of iterations for centroid updating.
 
-        Return:
-                numpy ndarray with cluster labels for each point.
+        Returns:
+            numpy ndarray with cluster labels for each point.
         """
         # Start with random centroids
         X = np.array(X)
-        centroids = np.array([np.random.rand(X.shape[1])
-                              for i in range(self.k)])
+        max_val = X.max()
         iterations = 0
+        centroids = np.array([max_val * np.random.random_sample(X.shape[1])
+                              for i in range(self.k)])
         p_centroids = np.full(centroids.shape, -1)
+
+        print(centroids)
 
         # Loop until centroids aren't updated between iterations or max iter met
         while not self.__should_end(p_centroids, centroids, iterations, max_iter):
@@ -72,18 +78,8 @@ class kmeans:
             # Label is the index of smallest distance in each row
             labels = np.argmin(dist, axis=0)
 
-            # If any centroid has no points, randomly reassign
-            empty_centroids = [i for i in range(
-                self.k) if i not in np.unique(labels)]
-            for i in empty_centroids:
-                centroids[i] = np.random.rand(X.shape[1])
-
-            # Recalculate new positions of all other centroids
-            # Positions are the mean of all points belonging to each centroid
-            for i in range(len(centroids)):
-                if i not in empty_centroids:
-                    centroids[i] = np.array(
-                        X[np.where(labels == i)].mean(axis=0))
+            # Update all centroids
+            self.__update_centroids(X, centroids, labels, max_val)
 
         # Save centroids and labels
         self.centroids = np.copy(centroids)
@@ -92,15 +88,13 @@ class kmeans:
         return self.labels
 
     def predict(self, X):
-        """
-        Gets centroid labels for each row of a given array similar to the data
-        used to fit the model.
+        """Predicts cluster for each row using centroids of fitted model.
 
         Parameters:
-                X: Array of data of similar dimensions to that used to fit the model.
+            X: Array of data of similar dimensions to that used to fit the model.
 
-        Return:
-                numpy of cluster labels for new data using fitted model
+        Returns:
+            numpy of cluster labels for new data using fitted model
         """
         if self.centroids is None:
             raise ModelNotFitted("Model needs to be fitted to data")
@@ -111,18 +105,19 @@ class kmeans:
         return labels
 
     def __should_end(self, p_centroids, centroids, iterations, max_iter):
-        """
-        Returns True if loop in fitting should end either due to the
-        centroids not updating or max iterations reached.
+        """Determines if centroid adjustment should end.
+
+        Returns True if centroids not updating or max iterations reached.
+        Otherwise, returns False.
 
         Parameters:
-                p_centroids: Previous centroids
-                centroids: Current centroids
-                iterations: Number of iterations so far
-                max_iter: Maximum number of iterations
+            p_centroids: Previous centroids
+            centroids: Current centroids
+            iterations: Number of iterations so far
+            max_iter: Maximum number of iterations
 
-        Return:
-                Boolean indicating if kmeans should end.
+        Returns:
+            Boolean value indicating if kmeans fitting should end.
         """
         # Reshape for comparison
         p_centroids = p_centroids.reshape(-1)
@@ -136,6 +131,21 @@ class kmeans:
 
         # Return false if conditions not met
         return False
+
+    def __update_centroids(self, X, centroids, labels, max_val):
+        """Updates centroids every iteration."""
+        # If any centroid has no points, randomly reassign
+        empty_centroids = [i for i in range(
+            self.k) if i not in np.unique(labels)]
+        for i in empty_centroids:
+            centroids[i] = max_val * np.random.random_sample(X.shape[1])
+
+        # Recalculate new positions of all other centroids
+        # Positions are the mean of all points belonging to each centroid
+        for i in range(len(centroids)):
+            if i not in empty_centroids:
+                centroids[i] = np.array(
+                    X[np.where(labels == i)].mean(axis=0))
 
 
 class ModelNotFitted(Exception):
