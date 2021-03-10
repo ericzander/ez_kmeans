@@ -1,8 +1,8 @@
 """This module contains a simple custom k-means clustering class.
 
-When fit to a 1-D or 2-D array of data, calculates k centroids and returns
-cluster labels for each point. The model retains the centroids, and can
-then predict the cluster labels for novel data.
+When fit to a 2-D array of data, calculates k centroids and returns cluster
+labels for each point. The model retains the centroids, and can then predict
+the cluster labels for novel data.
 
     Example:
 
@@ -42,9 +42,9 @@ class kmeans:
     def fit(self, X, max_iter=300, seed=None):
         """Fits the model to given data and returns cluster labels.
 
-        Given data can be 1-D or 2-D numpy arrays, a pandas Series, a
-        pandas DataFrame, or other similar format that can be converted
-        into a numpy array.
+        Given data can be a 2-D numpy array, a pandas Series, a pandas
+        DataFrame, or other similar format that can be converted into
+        a numpy array.
 
         Parameters:
             X: The data to fit the model to.
@@ -104,6 +104,7 @@ class kmeans:
         if self.centroids is None:
             raise ModelNotFitted("Model needs to be fitted to data")
 
+        # Find distance from points to centroids and save closest as labels
         dist = ((X - self.centroids[:, np.newaxis])**2).sum(axis=2)
         labels = np.argmin(dist, axis=0)
 
@@ -129,9 +130,7 @@ class kmeans:
         centroids = centroids.reshape(-1)
 
         # Return true if centroids didn't change or max iterations met
-        if np.allclose(p_centroids, centroids, atol=0.0001):
-            return True
-        elif iterations >= max_iter:
+        if np.allclose(p_centroids, centroids, atol=0.0001) or iterations >= max_iter:
             return True
 
         # Return false if conditions not met
@@ -140,8 +139,7 @@ class kmeans:
     def __update_centroids(self, X, centroids, labels, max_val):
         """Updates centroids every iteration."""
         # If any centroid has no points, randomly reassign
-        empty_centroids = [i for i in range(
-            self.k) if i not in np.unique(labels)]
+        empty_centroids = [i for i in range(self.k) if i not in np.unique(labels)]
         for i in empty_centroids:
             centroids[i] = max_val * np.random.random_sample(X.shape[1])
 
@@ -149,8 +147,7 @@ class kmeans:
         # Positions are the mean of all points belonging to each centroid
         for i in range(len(centroids)):
             if i not in empty_centroids:
-                centroids[i] = np.array(
-                    X[np.where(labels == i)].mean(axis=0))
+                centroids[i] = np.array(X[np.where(labels == i)].mean(axis=0))
 
 
 class ModelNotFitted(Exception):
